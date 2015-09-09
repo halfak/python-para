@@ -6,3 +6,7 @@ library is the `map()` function that can be used to distribute CPU-intensive
 processing of a collection of items over multiple cores.
 """
 from .map import map
+
+__version__ = "0.0.1"
+
+__all__ = [map]
