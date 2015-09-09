@@ -17,8 +17,8 @@ setup(
     scripts=[],
     url="http://pypi.python.org/pypi/para",
     license=open("LICENSE").read(),
-    description="a set utilities that ake advantage of python\'s " +
-                "`multiprocessing` module to distribute CPU-intensive tasks"
+    description="a set utilities that ake advantage of python's " +
+                "'multiprocessing' module to distribute CPU-intensive tasks",
     long_description=open("README.md").read(),
     install_requires=[],
     test_suite="nose.collector",
