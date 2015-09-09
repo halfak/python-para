@@ -15,8 +15,8 @@ This is how long an output queue will block while waiting for output to process
 
 def map(process, items, mappers=None):
     """
-    Implements a distributed stategy for processing XML files.  This
-    function constructs a set of py:mod:`multiprocessing` threads (spread over
+    Implements a distributed stategy for CPU-intensive tasks.  This
+    function constructs a set of :mod:`multiprocessing` threads (spread over
     multiple cores) and uses an internal queue to aggregate outputs.  To use
     this function, implement a `process()` function that takes one argument --
     a serializable job.  Anything that this function ``yield``s will be
