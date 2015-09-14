@@ -48,14 +48,16 @@ def map(process, items, mappers=None):
         ...
     """
 
+    items = list(items)
+
+    # Special case for a single item
+    if len(items) == 1:
+        yield from process(items[0])
+
     # Load paths into the queue
     item_queue = Queue()
     for item in items:
         item_queue.put(item)
-
-    # Special case for a single item
-    if item_queue.qsize() == 1:
-        yield from process(item_queue.get())
 
     # How many mappers are we going to have?
     mappers = min(max(1, mappers or cpu_count()), len(items))
