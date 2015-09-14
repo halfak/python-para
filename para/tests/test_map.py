@@ -1,3 +1,5 @@
+import sys
+
 from nose.tools import eq_
 
 from ..map import map
@@ -20,16 +22,9 @@ def test_map():
         })
 
 def test_map_single():
-    words = ["baz"]
+    paths = [sys.stdin]
 
-    def get_the_a(word):
-        for i, char in enumerate(word):
-            if char == 'a':
-                yield word, i
+    def is_a_file(path):
+        yield hasattr(path, "read")
 
-    set_of_a = set(map(get_the_a, words))
-
-    eq_(set_of_a,
-        {
-            ("baz", 1)
-        })
+    eq_(sum(map(is_a_file, paths)), 1)

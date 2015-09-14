@@ -52,7 +52,14 @@ def map(process, items, mappers=None):
 
     # Special case for a single item
     if len(items) == 1:
-        yield from process(items[0])
+        return _map_single_item(process, items[0])
+    else:
+        return _map_many_items(process, items, mappers)
+
+def _map_single_item(process, item):
+    yield from process(item)
+
+def _map_many_items(process, items, mappers):
 
     # Load paths into the queue
     item_queue = Queue()
