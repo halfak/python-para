@@ -7,6 +7,6 @@ processing of a collection of items over multiple cores.
 """
 from .map import map
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 __all__ = [map]
