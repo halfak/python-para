@@ -10,7 +10,7 @@ def requirements(fname):
 
 setup(
     name="para",
-    version="0.0.3",  # update in para/__init__.py too
+    version="0.0.4",  # update in para/__init__.py too
     author="Aaron Halfaker",
     author_email="aaron.halfaker@gmail.com",
     packages=find_packages(),
