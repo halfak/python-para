@@ -21,6 +21,25 @@ def test_map():
             ("baz", 1)
         })
 
+
+def test_output_queue_size():
+    words = ["foo", "bar", "baz"]
+
+    def get_the_a(word):
+        for i, char in enumerate(word):
+            if char == 'a':
+                yield word, i
+
+    set_of_a = set(map(get_the_a, words, output_queue_size=1))
+
+    eq_(set_of_a,
+        {
+            ("bar", 1),
+            ("baz", 1)
+        })
+
+
+
 def test_map_single():
     paths = [sys.stdin]
 

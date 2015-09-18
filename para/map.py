@@ -12,8 +12,10 @@ OUTPUT_QUEUE_TIMEOUT = 0.1
 This is how long an output queue will block while waiting for output to process
 """
 
+OUTPUT_QUEUE_SIZE = 50
 
-def map(process, items, mappers=None):
+
+def map(process, items, mappers=None, output_queue_size=OUTPUT_QUEUE_SIZE):
     """
     Implements a distributed stategy for CPU-intensive tasks.  This
     function constructs a set of :mod:`multiprocessing` threads (spread over
@@ -31,6 +33,8 @@ def map(process, items, mappers=None):
             memory.
         mappers : int
             the number of parallel mappers to spool up
+        output_queue_size : int
+            the number of outputs to buffer before blocking mappers
 
     :Example:
 
@@ -56,10 +60,13 @@ def map(process, items, mappers=None):
     else:
         return _map_many_items(process, items, mappers)
 
+
 def _map_single_item(process, item):
     yield from process(item)
 
-def _map_many_items(process, items, mappers):
+
+def _map_many_items(process, items, mappers,
+                    output_queue_size=OUTPUT_QUEUE_SIZE):
 
     # Load paths into the queue
     item_queue = Queue()
@@ -70,7 +77,7 @@ def _map_many_items(process, items, mappers):
     mappers = min(max(1, mappers or cpu_count()), len(items))
 
     # Prepare the output queue
-    output = Queue()
+    output = Queue(output_queue_size or OUTPUT_QUEUE_SIZE)
 
     # Prepare the logs queue
     qlogger = QueueLogger()
