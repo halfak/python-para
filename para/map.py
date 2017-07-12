@@ -84,15 +84,14 @@ def _map_many_items(process, items, mappers,
     qlogger.start()
 
     # Prepare the mappers and start them
-    mapper_processes = [Mapper(process, item_queue, output, qlogger,
-                               name=str(i))
-                        for i in range(mappers)]
-    for mapper_process in mapper_processes:
-        mapper_process.start()
+    map_processes = [Mapper(process, item_queue, output, qlogger, name=str(i))
+                     for i in range(mappers)]
+    for map_process in map_processes:
+        map_process.start()
 
     # Read from the output queue while there's still a mapper alive or
     # something in the queue to read.
-    while sum(m.is_alive() for m in mapper_processes) > 0 or not output.empty():
+    while not output.empty() or sum(m.is_alive() for m in map_processes) > 0:
         try:
             # if we timeout, the loop will check to see if we are done
             error, value = output.get(timeout=OUTPUT_QUEUE_TIMEOUT)
@@ -101,6 +100,9 @@ def _map_many_items(process, items, mappers,
                 yield value
             else:
                 raise error
+        except KeyboardInterrupt:
+            logger.warning("KeyboardInterrupt detected.  Finishing...")
+            break
 
         except Empty:
             # This can happen when mappers aren't adding values to the
