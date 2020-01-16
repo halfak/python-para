@@ -1,5 +1,5 @@
 __name__ = "para"
-__version__ = "0.0.5"
+__version__ = "0.0.7"
 __author__ = "Aaron Halfaker"
 __author_email__ = "aaron.halfaker@gmail.com"
 __description__ = "a set utilities that ake advantage of python's " + \
