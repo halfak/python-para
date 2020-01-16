@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 
+# Demos
+demo_*
+
 # Temporary text editor files
 *~
 
