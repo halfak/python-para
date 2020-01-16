@@ -97,12 +97,15 @@ def _map_many_items(process, items, mappers,
 
     # Read from the output queue while there's still a mapper alive or
     # something in the queue to read.
-    while not output.empty() or sum(m.is_alive() for m in map_processes) > 0:
+    while not output.empty() or mappers > 0:
         try:
             # if we timeout, the loop will check to see if we are done
-            error, value = output.get(timeout=OUTPUT_QUEUE_TIMEOUT)
+            error, value, mapper_done = \
+                output.get(timeout=OUTPUT_QUEUE_TIMEOUT)
 
-            if error is None:
+            if mapper_done:  # Decrement the number of mappers
+                mappers -= 1
+            elif error is None:
                 yield value
             else:
                 raise error
@@ -113,11 +116,9 @@ def _map_many_items(process, items, mappers,
         except Empty:
             # This can happen when mappers aren't adding values to the
             # queue fast enough *or* if we're done processing.
-            print("Looks like we're empty and we have {0} processes alive"
-                  .format(sum(m.is_alive() for m in map_processes)))
 
             # Check if we have any processes still alive
-            if sum(m.is_alive() for m in map_processes) > 0:
+            if mappers > 0:
                 continue  # Keep trying
             else:
                 break  # Shut it down
@@ -154,7 +155,7 @@ class Mapper(Process):
                     # For each value that is yielded, add it to the output
                     # queue
                     for value in self.process(item):
-                        self.output.put((None, value))
+                        self.output.put((None, value, False))
                         count += 1
                     self.stats.append((item, count, time.time() - start_time))
                 except Exception as e:
@@ -164,13 +165,14 @@ class Mapper(Process):
                     )
                     formatted = traceback.format_exc(chain=False)
                     self.logger.error("{0}: {1}".format(self.name, formatted))
-                    self.output.put((e, None))
+                    self.output.put((e, None, False))
                     return  # Exits without polluting stderr
 
         except Empty:
             self.logger.info("Mapper {0}: No more items to process"
                              .format(self.name))
             self.logger.info("\n" + "\n".join(self.format_stats()))
+            self.output.put((None, None, True))
 
     def format_stats(self):
         for path, outputs, duration in self.stats:
