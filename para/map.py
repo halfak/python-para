@@ -97,7 +97,7 @@ def _map_many_items(process, items, mappers,
 
     # Read from the output queue while there's still a mapper alive or
     # something in the queue to read.
-    while not output.empty():
+    while not output.empty() or sum(m.is_alive() for m in map_processes) > 0:
         try:
             # if we timeout, the loop will check to see if we are done
             error, value = output.get(timeout=OUTPUT_QUEUE_TIMEOUT)
@@ -112,12 +112,15 @@ def _map_many_items(process, items, mappers,
 
         except Empty:
             # This can happen when mappers aren't adding values to the
-            # queue fast enough *or* if we're done processing.  Let the while
-            # condition determine if we are done or not.
+            # queue fast enough *or* if we're done processing.
+            print("Looks like we're empty and we have {0} processes alive"
+                  .format(sum(m.is_alive() for m in map_processes)))
+
+            # Check if we have any processes still alive
             if sum(m.is_alive() for m in map_processes) > 0:
-                break
+                continue  # Keep trying
             else:
-                continue
+                break  # Shut it down
 
 
 class Mapper(Process):

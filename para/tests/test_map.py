@@ -1,7 +1,5 @@
 import sys
 
-from nose.tools import eq_
-
 from ..map import map
 
 
@@ -15,11 +13,11 @@ def test_map():
 
     set_of_a = set(map(get_the_a, words))
 
-    eq_(set_of_a,
+    assert set_of_a == \
         {
             ("bar", 1),
             ("baz", 1)
-        })
+        }
 
 
 def test_output_queue_size():
@@ -32,11 +30,11 @@ def test_output_queue_size():
 
     set_of_a = set(map(get_the_a, words, output_queue_size=1))
 
-    eq_(set_of_a,
+    assert set_of_a == \
         {
             ("bar", 1),
             ("baz", 1)
-        })
+        }
 
 
 def test_map_single():
@@ -45,4 +43,4 @@ def test_map_single():
     def is_a_file(path):
         yield hasattr(path, "read")
 
-    eq_(sum(map(is_a_file, paths)), 1)
+    assert sum(map(is_a_file, paths)) == 1
