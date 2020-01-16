@@ -39,7 +39,6 @@ def test_output_queue_size():
         })
 
 
-
 def test_map_single():
     paths = [sys.stdin]
 

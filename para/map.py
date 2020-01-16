@@ -12,6 +12,12 @@ OUTPUT_QUEUE_TIMEOUT = 0.1
 This is how long an output queue will block while waiting for output to process
 """
 
+PROCESS_JOIN_TIMEOUT = 5
+"""
+This is how long to wait for processes to join to the main thread when it
+looks like we are done.
+"""
+
 OUTPUT_QUEUE_SIZE = 50
 
 
@@ -91,7 +97,7 @@ def _map_many_items(process, items, mappers,
 
     # Read from the output queue while there's still a mapper alive or
     # something in the queue to read.
-    while not output.empty() or sum(m.is_alive() for m in map_processes) > 0:
+    while not output.empty():
         try:
             # if we timeout, the loop will check to see if we are done
             error, value = output.get(timeout=OUTPUT_QUEUE_TIMEOUT)
@@ -108,17 +114,22 @@ def _map_many_items(process, items, mappers,
             # This can happen when mappers aren't adding values to the
             # queue fast enough *or* if we're done processing.  Let the while
             # condition determine if we are done or not.
-            continue
+            if sum(m.is_alive() for m in map_processes) > 0:
+                break
+            else:
+                continue
 
 
 class Mapper(Process):
-    """
-    Implements a mapper process worker.  Instances of this class will
-    continually try to read from an `item_queue` and execute it's `process()`
-    function until there is nothing left to read from the `item_queue`.
-    """
+
     def __init__(self, process, item_queue, output, logger, name=None):
-        super().__init__(name="Mapper {0}".format(name), daemon=True)
+        """
+        Implements a mapper process worker.  Instances of this class will
+        continually try to read from an `item_queue` and execute its
+        `process()` function until there is nothing left to read from the
+        `item_queue`.
+        """
+        super().__init__(name="{0}".format(name), daemon=True)
         self.process = process
         self.item_queue = item_queue
         self.output = output
@@ -145,7 +156,7 @@ class Mapper(Process):
                     self.stats.append((item, count, time.time() - start_time))
                 except Exception as e:
                     self.logger.error(
-                        "{0}: An error occured while processing {1}"
+                        "Mapper {0}: An error occured while processing {1}"
                         .format(self.name, str(item)[:50])
                     )
                     formatted = traceback.format_exc(chain=False)
@@ -154,7 +165,8 @@ class Mapper(Process):
                     return  # Exits without polluting stderr
 
         except Empty:
-            self.logger.info("{0}: No more items to process".format(self.name))
+            self.logger.info("Mapper {0}: No more items to process"
+                             .format(self.name))
             self.logger.info("\n" + "\n".join(self.format_stats()))
 
     def format_stats(self):
