@@ -105,6 +105,8 @@ def _map_many_items(process, items, mappers,
 
             if mapper_done:  # Decrement the number of mappers
                 mappers -= 1
+                logger.info("Mapper shutting down.  {0} mappers still running"
+                            .format(mappers))
             elif error is None:
                 yield value
             else:
